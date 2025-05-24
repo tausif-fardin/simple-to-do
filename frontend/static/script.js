@@ -6,13 +6,15 @@ document.addEventListener("DOMContentLoaded", function () {
     const clearCompletedBtn = document.getElementById("clearCompletedBtn");
     const filterButtons = document.querySelectorAll(".filter-btn");
 
+    // API URL - change when deploying to production
+    const API_URL = "http://localhost:3000/api";
+
     let currentFilter = "all";
-    let tasks = JSON.parse(localStorage.getItem("tasks")) || [];
+    let tasks = [];
 
     // Initialize the app
     function init() {
-        renderTasks();
-        updateTaskCount();
+        fetchTasks(); // Fetch tasks from backend
 
         // Add event listeners
         addTaskButton.addEventListener("click", addTask);
@@ -34,60 +36,166 @@ document.addEventListener("DOMContentLoaded", function () {
         });
     }
 
-    // Add new task
-    function addTask() {
-        const taskText = taskInput.value.trim();
-        if (taskText) {
-            const newTask = {
-                id: Date.now(),
-                text: taskText,
-                completed: false,
-                createdAt: new Date(),
-            };
+    // Fetch all tasks from backend
+    async function fetchTasks() {
+        try {
+            showLoader();
+            const response = await fetch(`${API_URL}/todos`);
 
-            tasks.push(newTask);
-            saveTasks();
+            if (!response.ok) {
+                throw new Error(`HTTP error! Status: ${response.status}`);
+            }
+
+            tasks = await response.json();
             renderTasks();
             updateTaskCount();
+        } catch (error) {
+            showError("Failed to fetch tasks");
+            console.error("Error fetching tasks:", error);
+        } finally {
+            hideLoader();
+        }
+    }
 
-            taskInput.value = "";
-            taskInput.focus();
+    // Add new task
+    async function addTask() {
+        const taskText = taskInput.value.trim();
+        if (taskText) {
+            try {
+                showLoader();
+                const response = await fetch(`${API_URL}/todos`, {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                    },
+                    body: JSON.stringify({ text: taskText }),
+                });
+
+                if (!response.ok) {
+                    throw new Error(`HTTP error! Status: ${response.status}`);
+                }
+
+                const newTask = await response.json();
+                tasks.push(newTask);
+                renderTasks();
+                updateTaskCount();
+
+                taskInput.value = "";
+                taskInput.focus();
+            } catch (error) {
+                showError("Failed to add task");
+                console.error("Error adding task:", error);
+            } finally {
+                hideLoader();
+            }
         }
     }
 
     // Toggle task completion status
-    function toggleTask(taskId) {
-        tasks = tasks.map((task) => {
-            if (task.id === taskId) {
-                return { ...task, completed: !task.completed };
-            }
-            return task;
-        });
+    async function toggleTask(taskId) {
+        try {
+            const task = tasks.find((t) => t.id === taskId);
+            if (!task) return;
 
-        saveTasks();
-        renderTasks();
-        updateTaskCount();
+            showLoader();
+            const response = await fetch(`${API_URL}/todos/${taskId}`, {
+                method: "PUT",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify({ completed: !task.completed }),
+            });
+
+            if (!response.ok) {
+                throw new Error(`HTTP error! Status: ${response.status}`);
+            }
+
+            tasks = tasks.map((task) => {
+                if (task.id === taskId) {
+                    return { ...task, completed: !task.completed };
+                }
+                return task;
+            });
+
+            renderTasks();
+            updateTaskCount();
+        } catch (error) {
+            showError("Failed to update task");
+            console.error("Error updating task:", error);
+        } finally {
+            hideLoader();
+        }
     }
 
     // Delete a task
-    function deleteTask(taskId) {
-        tasks = tasks.filter((task) => task.id !== taskId);
-        saveTasks();
-        renderTasks();
-        updateTaskCount();
+    async function deleteTask(taskId) {
+        try {
+            showLoader();
+            const response = await fetch(`${API_URL}/todos/${taskId}`, {
+                method: "DELETE",
+            });
+
+            if (!response.ok) {
+                throw new Error(`HTTP error! Status: ${response.status}`);
+            }
+
+            tasks = tasks.filter((task) => task.id !== taskId);
+            renderTasks();
+            updateTaskCount();
+        } catch (error) {
+            showError("Failed to delete task");
+            console.error("Error deleting task:", error);
+        } finally {
+            hideLoader();
+        }
     }
 
     // Clear completed tasks
-    function clearCompleted() {
-        tasks = tasks.filter((task) => !task.completed);
-        saveTasks();
-        renderTasks();
-        updateTaskCount();
+    async function clearCompleted() {
+        try {
+            showLoader();
+            const response = await fetch(`${API_URL}/todos`, {
+                method: "DELETE",
+            });
+
+            if (!response.ok) {
+                throw new Error(`HTTP error! Status: ${response.status}`);
+            }
+
+            tasks = tasks.filter((task) => !task.completed);
+            renderTasks();
+            updateTaskCount();
+        } catch (error) {
+            showError("Failed to clear completed tasks");
+            console.error("Error clearing completed tasks:", error);
+        } finally {
+            hideLoader();
+        }
     }
 
-    // Save tasks to localStorage
-    function saveTasks() {
-        localStorage.setItem("tasks", JSON.stringify(tasks));
+    // Helper functions for UI feedback
+    function showLoader() {
+        // For simplicity, we'll just disable the add button to indicate loading
+        addTaskButton.disabled = true;
+        addTaskButton.textContent = "Loading...";
+    }
+
+    function hideLoader() {
+        addTaskButton.disabled = false;
+        addTaskButton.innerHTML = '<i class="fas fa-plus"></i> Add';
+    }
+
+    function showError(message) {
+        const errorDiv = document.createElement("div");
+        errorDiv.className = "error-message";
+        errorDiv.textContent = message;
+
+        const container = document.querySelector(".container");
+        container.insertBefore(errorDiv, taskInput.parentElement);
+
+        setTimeout(() => {
+            errorDiv.remove();
+        }, 3000);
     }
 
     // Render tasks based on current filter
