@@ -7,7 +7,7 @@ document.addEventListener("DOMContentLoaded", function () {
     const filterButtons = document.querySelectorAll(".filter-btn");
 
     // API URL - change when deploying to production
-    const API_URL = "http://localhost:3000/api";
+    const API_URL = "http://localhost:8000/api";
 
     let currentFilter = "all";
     let tasks = [];
