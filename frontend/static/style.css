@@ -223,3 +223,49 @@ li.completed .task-text {
     color: white;
     border-color: var(--primary-color);
 }
+
+/* Error message styling */
+.error-message {
+    background-color: #fee2e2;
+    color: #ef4444;
+    padding: 10px;
+    margin-bottom: 15px;
+    border-radius: var(--border-radius);
+    text-align: center;
+    animation: slideDown 0.3s ease-out;
+    border-left: 4px solid #ef4444;
+}
+
+@keyframes slideDown {
+    from { 
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Disabled button state */
+button:disabled {
+    background-color: #9ca3af;
+    cursor: not-allowed;
+    transform: none;
+}
+
+/* Add loading spinner for long operations */
+.loading-spinner {
+    display: inline-block;
+    width: 20px;
+    height: 20px;
+    border: 3px solid rgba(255,255,255,.3);
+    border-radius: 50%;
+    border-top-color: white;
+    animation: spin 1s ease-in-out infinite;
+    margin-right: 8px;
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
