@@ -1,50 +1,67 @@
-# Backend for To-Do App
+# 🚀 Todo App Backend Service
 
-This directory contains the backend implementation for the To-Do application.
+This directory contains the robust, MongoDB-backed backend implementation for the Todo application.
 
-## Technology Stack
+## 💻 Technology Stack
 
-- **Node.js**: JavaScript runtime
-- **Express.js**: Web framework for creating the API
-- **File-based storage**: JSON file for data persistence
-- **UUID**: For generating unique IDs for tasks
-- **CORS**: For handling cross-origin requests in development
+- **Node.js**: JavaScript runtime for server-side execution
+- **Express.js**: Fast, minimalist web framework for the API
+- **MongoDB**: NoSQL database for data persistence
+- **Mongoose**: Elegant MongoDB object modeling
+- **dotenv**: Environment variable management
+- **CORS**: Cross-Origin Resource Sharing middleware
+- **Morgan**: HTTP request logger for API debugging
 
-## API Endpoints
+## 🔄 API Endpoints
 
-- `GET /api/todos` - Get all todos
-- `POST /api/todos` - Create a new todo
-- `PUT /api/todos/:id` - Update a todo
-- `DELETE /api/todos/:id` - Delete a todo
-- `DELETE /api/todos` - Delete all completed todos
+| Method | Endpoint | Description | Request Body | Response |
+|--------|----------|-------------|-------------|----------|
+| GET | `/api/todos` | Get all todos | - | `200 OK` with array of todo objects |
+| POST | `/api/todos` | Create a new todo | `{ "text": "Task description" }` | `201 Created` with new todo object |
+| PUT | `/api/todos/:id` | Update a todo | `{ "completed": true\|false }` | `200 OK` with updated todo object |
+| DELETE | `/api/todos/:id` | Delete a todo | - | `204 No Content` |
+| DELETE | `/api/todos` | Delete all completed | - | `204 No Content` |
 
-## Data Storage
+## 🗄️ Data Schema
 
-Tasks are stored in a JSON file at `data/todos.json`. The file structure is:
+Tasks are stored in MongoDB using the following schema:
 
-```json
-[
-  {
-    "id": "unique-uuid",
-    "text": "Task description",
-    "completed": false,
-    "createdAt": "2025-05-24T12:00:00.000Z"
+```javascript
+// Todo Schema
+{
+  _id: ObjectId,             // MongoDB document ID
+  text: {
+    type: String,           // Task description text
+    required: true          // Text field is mandatory
+  },
+  completed: {
+    type: Boolean,         // Task completion status
+    default: false         // Default value is false
+  },
+  createdAt: {
+    type: Date,            // Timestamp of creation
+    default: Date.now      // Default to current time
   }
-]
+}
 ```
 
-## Docker Details
+## 🐳 Docker Implementation
 
 The backend is containerized using:
-- node:18-alpine as the base image
-- Volume mount for data persistence
-- Exposed on port 8000
+- **Base Image**: `node:18-alpine` for minimal size and security
+- **Environment Variables**: Configurable via `.env` file
+- **MongoDB Connection**: Connects to the MongoDB container
+- **Exposed Port**: Service available on port 8000
 
-## Setup Outside Docker
+## 🛠️ Local Development Setup
 
 ```bash
 # Install dependencies
 npm install
+
+# Set up environment variables
+cp .env.example .env
+# Edit .env file to configure MongoDB connection
 
 # Start development server with hot-reload
 npm run dev
@@ -55,25 +72,33 @@ npm start
 
 The server runs on port 8000 by default. You can change this by setting the PORT environment variable.
 
-## API Details
+## 🔍 API Error Handling
 
-### GET /api/todos
-Returns all todos as a JSON array.
+The API implements robust error handling with appropriate HTTP status codes:
 
-### POST /api/todos
-Creates a new todo.
-- Required body: `{ "text": "Task description" }`
-- Returns: The created todo object
+- **400 Bad Request**: Invalid input data
+- **404 Not Found**: Todo item not found
+- **500 Server Error**: Internal server issues
 
-### PUT /api/todos/:id
-Updates a todo's completion status.
-- Required body: `{ "completed": true|false }`
-- Returns: The updated todo object
+Example error response:
+```json
+{
+  "error": "Todo not found"
+}
+```
 
-### DELETE /api/todos/:id
-Deletes a specific todo.
-- Returns: 204 No Content on success
+## 🧪 MongoDB Connection
 
-### DELETE /api/todos
-Deletes all completed todos.
-- Returns: 204 No Content on success
+The application uses Mongoose to connect to MongoDB with the following features:
+
+- Connection string configured via environment variables
+- Proper error handling for failed connections
+- Connection logging for debugging
+- MongoDB ObjectId validation
+
+## 🔒 Security Considerations
+
+- Environment variables for sensitive information
+- Input validation to prevent injection attacks
+- CORS configuration for frontend access
+- No sensitive data exposure in responses
