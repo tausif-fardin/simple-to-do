@@ -1,0 +1,31 @@
+services:
+  backend:
+    image: test-site-backend
+    pull_policy: never
+    container_name: test-site-backend
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    ports:
+      - "8000:8000"
+
+  frontend:
+    image: test-site-frontend
+    pull_policy: never
+    container_name: test-site-frontend
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    ports:
+      - "8080:80"
+
+  mongo:
+    image: mongo:8.0.10-rc0-noble
+    container_name: test-site-mongodb
+    volumes:
+      - mongodb-data:/data/db
+    env_file:
+      - ./mongodb/.env
+
+volumes:
+  mongodb-data:

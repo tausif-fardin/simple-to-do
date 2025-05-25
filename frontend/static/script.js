@@ -94,7 +94,8 @@ document.addEventListener("DOMContentLoaded", function () {
     // Toggle task completion status
     async function toggleTask(taskId) {
         try {
-            const task = tasks.find((t) => t.id === taskId);
+            // Find task by _id (MongoDB) or id (legacy)
+            const task = tasks.find((t) => t._id === taskId || t.id === taskId);
             if (!task) return;
 
             showLoader();
@@ -111,7 +112,7 @@ document.addEventListener("DOMContentLoaded", function () {
             }
 
             tasks = tasks.map((task) => {
-                if (task.id === taskId) {
+                if (task._id === taskId || task.id === taskId) {
                     return { ...task, completed: !task.completed };
                 }
                 return task;
@@ -139,7 +140,10 @@ document.addEventListener("DOMContentLoaded", function () {
                 throw new Error(`HTTP error! Status: ${response.status}`);
             }
 
-            tasks = tasks.filter((task) => task.id !== taskId);
+            // Filter out task by _id (MongoDB) or id (legacy)
+            tasks = tasks.filter(
+                (task) => task._id !== taskId && task.id !== taskId
+            );
             renderTasks();
             updateTaskCount();
         } catch (error) {
@@ -227,13 +231,16 @@ document.addEventListener("DOMContentLoaded", function () {
                 li.classList.add("completed");
             }
 
+            // Get task ID - use _id for MongoDB or fallback to id for legacy data
+            const taskId = task._id || task.id;
+            
             // Create checkbox
             const checkbox = document.createElement("span");
             checkbox.classList.add("checkbox");
             if (task.completed) {
                 checkbox.innerHTML = '<i class="fas fa-check"></i>';
             }
-            checkbox.addEventListener("click", () => toggleTask(task.id));
+            checkbox.addEventListener("click", () => toggleTask(taskId));
 
             // Create task text
             const taskText = document.createElement("span");
@@ -246,7 +253,7 @@ document.addEventListener("DOMContentLoaded", function () {
             deleteBtn.innerHTML = '<i class="fas fa-trash"></i>';
             deleteBtn.addEventListener("click", (e) => {
                 e.stopPropagation();
-                deleteTask(task.id);
+                deleteTask(taskId);
             });
 
             // Create actions container
