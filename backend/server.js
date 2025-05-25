@@ -50,6 +50,11 @@ const saveTodos = async (todos) => {
 };
 
 // Routes
+// Test route
+app.get("/", (req, res) => {
+    res.send("Todo API is running!");
+});
+
 // Get all todos
 app.get("/api/todos", async (req, res) => {
     try {
